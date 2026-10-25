@@ -261,6 +261,7 @@ def configure_clients(
     rea_dir: Path,
     env_vars: dict[str, str],
     opencode_config_dir: Path,
+    hermes_home: Path,
 ) -> None:
     rea_cmd = (
         rea_dir / "node_modules" / ".bin" / ("rea.cmd" if os.name == "nt" else "rea")
@@ -301,6 +302,37 @@ def configure_clients(
             ]
             oc_json.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
+    # Inject REA_APKTOOL_COMMAND into Hermes config.yaml if present
+    hermes_cfg = hermes_home / "config.yaml"
+    if hermes_cfg.is_file() and "REA_APKTOOL_COMMAND" in env_vars:
+        cfg_text = hermes_cfg.read_text(encoding="utf-8")
+        apk_val = env_vars["REA_APKTOOL_COMMAND"]
+        if "REA_APKTOOL_COMMAND:" not in cfg_text and "REA_JADX_MCP_JAR:" in cfg_text:
+            cfg_text = cfg_text.replace(
+                f"REA_JADX_MCP_JAR: {env_vars['REA_JADX_MCP_JAR']}",
+                f"REA_JADX_MCP_JAR: {env_vars['REA_JADX_MCP_JAR']}\n      REA_APKTOOL_COMMAND: {apk_val}",
+            )
+            hermes_cfg.write_text(cfg_text, encoding="utf-8")
+
+    # Inject Gated Project Routing block into Hermes SOUL.md if missing
+    soul_path = hermes_home / "SOUL.md"
+    routing_header = "## Gated software project routing"
+    routing_block = (
+        "## Gated software project routing\n\n"
+        "For software projects managed through the Hermes–OpenCode gated workflow, load `gated-project-orchestration` before implementation delegation. "
+        "Its project-specific procedure supersedes direct CLI delegation examples, stale model preferences, and competing task-status conventions below. "
+        "Requirements and design each require explicit user approval bound to document hashes. "
+        "Product assumptions require confirmation; internal implementation details may follow approved architecture and repository conventions. "
+        "When the user provides a product/feature concept without a reference app (after clarifying initial intake questions), proactively scout and recommend matching real-world Web/Desktop/APK targets to inspect with REA (`reverse-engineer-anything`) and check `cli-hub` (`cli-hub-meta-skill`) to ground the architecture in real evidence before Gate 2 Design approval. "
+        "Use the local workflow runner for dispatch, independent verification, and acceptance. Canonical project artifacts own status; Kanban is a projection. "
+        "If the runner is unavailable or a gate fails, report the blocker instead of bypassing it. General diagnostics and non-project tasks retain the existing operating rules.\n\n"
+    )
+    if soul_path.is_file():
+        soul_text = soul_path.read_text(encoding="utf-8")
+        if routing_header not in soul_text:
+            soul_path.write_text(routing_block + soul_text, encoding="utf-8")
+            log("Injected Gated software project routing header into Hermes SOUL.md")
+
 
 def verify_installation(
     runner_dest: Path, rea_dir: Path, env_vars: dict[str, str]
@@ -317,6 +349,12 @@ def verify_installation(
     )
     run_env = os.environ.copy()
     run_env.update(env_vars)
+    if "JAVA_HOME" in env_vars:
+        run_env["PATH"] = (
+            str(Path(env_vars["JAVA_HOME"]) / "bin")
+            + os.pathsep
+            + run_env.get("PATH", "")
+        )
     log("Running REA doctor check...")
     res = subprocess.run(
         [
@@ -334,9 +372,8 @@ def verify_installation(
         check=False,
     )
     doc = json.loads(res.stdout)
-    log(
-        f"REA Doctor healthy={doc.get('healthy')}, availableProviders={doc.get('availableProviders')}"
-    )
+    avail = [p["id"] for p in doc.get("providerInspections", []) if p.get("available")]
+    log(f"REA Doctor healthy={doc.get('healthy')}, availableProviders={avail}")
     if not doc.get("healthy"):
         raise RuntimeError("REA Doctor reported unhealthy status!")
 
@@ -376,7 +413,7 @@ def main() -> int:
     if args.mode == "full" and os.name == "nt":
         env_vars = install_native_engines(tools_dir)
 
-    configure_clients(rea_dir, env_vars, opencode_config_dir)
+    configure_clients(rea_dir, env_vars, opencode_config_dir, hermes_home)
     verify_installation(runner_dest, rea_dir, env_vars)
 
     log("SUCCESS! All components installed, configured, and verified.")
