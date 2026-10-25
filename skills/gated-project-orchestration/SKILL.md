@@ -1,6 +1,6 @@
 ---
 name: gated-project-orchestration
-description: Use for software project intake, requirements and design approvals, and gated coding delegation to the local OpenCode workflow runner.
+description: Gated project approvals, REA scouting, and OpenCode runner.
 ---
 
 # Gated Project Orchestration
@@ -16,8 +16,8 @@ Read `OPERATIONS.md` in the runner directory before first use. Verify the runner
 1. Read project artifacts before asking questions. Use brainstorming for product ambiguity and ask one high-value question per message.
    One question means one decision, not several questions joined into one sentence. For an unspecified inventory idea, ask only: "Jenis barang apa yang ingin dikelola?" Ask about users and MVP in subsequent turns.
    - **Proactive Reference Scouting & Pre-Design Discovery (REA & CLI-Hub)**:
-     - If the user already names a reference app/web/APK, or if the user only provides a concept without naming a reference: once initial intake questions (domain, users, MVP) are clarified, **proactively search and recommend 1–3 top real-world benchmark targets** (live Web App, Desktop/Electron App, or Android APK) that can be inspected with REA (`reverse-engineer-anything`), alongside any relevant CLI harnesses from `cli-hub` (`cli-hub-meta-skill`).
-     - Explain clearly what technical facts will be extracted (e.g., data schema, API/IPC contract, offline storage, state transitions, or bundle structure).
+     - If the user already names a reference app/web/APK, or if the user only provides a concept/media sample (such as a YouTube video, document, or workflow idea) without naming a software product: once initial intake questions (domain, users, MVP) are clarified, **proactively search and recommend 1–3 top commercial SaaS / Web Apps / Desktop Apps / Android APKs** in that domain (e.g., OpusClip/Vizard/CapCut Web for video clipping, Obsidian/Joplin for notes, etc.) that can be inspected with REA (`reverse-engineer-anything`), alongside any relevant CLI harnesses from `cli-hub` (`cli-hub-meta-skill`).
+     - Present this recommendation explicitly to the user via `clarify` BEFORE finalizing Gate 2 (`docs/design.md`), explaining what technical facts will be extracted (e.g., scoring heuristics, data schema, API/IPC contract, offline storage, or bundle structure).
      - Upon confirmation, acquire/inspect the target using REA and store all outputs inside `artifacts/discovery/<target>/` (top-level `artifacts/` is excluded from the runner manifest) or an external temp directory to keep the Git baseline clean. Distinguish verified facts, inferences, and residual unknowns, and translate relevant findings into clean architectural specifications inside `docs/design.md` before Gate 2 without copying raw decompiled code.
 2. Obtain explicit requirements and design approval separately. Preserve the user's actual text and hash the approved documents. Never reuse pilot approval evidence for a product.
    If an interactive question tool is unavailable or fails (including one-shot CLI mode), ask exactly one direct question in the final response. Leave the requirement unresolved. Do not infer the product domain, users, or MVP from unrelated memories, previous projects, or presumed ecosystem connections.
