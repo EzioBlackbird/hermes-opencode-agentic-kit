@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Workflow worker report v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "attemptId", "contractHash", "status", "summary", "changedFiles", "verification", "blockers", "changeRequests", "remainingConcerns"],
+  "$defs": {"text": {"type": "string", "minLength": 1}, "strings": {"type": "array", "items": {"$ref": "#/$defs/text"}}},
+  "properties": {
+    "schemaVersion": {"type": "integer", "const": 1},
+    "taskId": {"$ref": "#/$defs/text"}, "attemptId": {"$ref": "#/$defs/text"}, "contractHash": {"$ref": "#/$defs/text"},
+    "status": {"enum": ["ready_for_review", "blocked", "failed"]}, "summary": {"$ref": "#/$defs/text"},
+    "changedFiles": {"$ref": "#/$defs/strings"}, "blockers": {"$ref": "#/$defs/strings"}, "changeRequests": {"$ref": "#/$defs/strings"}, "remainingConcerns": {"$ref": "#/$defs/strings"},
+    "verification": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["checkIndex", "exitCode", "evidencePaths"], "properties": {"checkIndex": {"type": "integer", "minimum": 0}, "exitCode": {"type": "integer"}, "evidencePaths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}}}}}
+  }
+}

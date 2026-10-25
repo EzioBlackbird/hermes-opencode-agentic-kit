@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.env
+*.bak*
+*.backup*
+*.recovery
+node_modules/
+*.zip
+*.jar

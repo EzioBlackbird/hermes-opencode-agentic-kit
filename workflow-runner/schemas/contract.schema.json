@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Workflow contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "taskId", "baseRevision", "approvalFiles", "allowedPaths", "verification", "workerCommand", "timeoutSeconds", "acceptanceCriteria", "dependsOn", "requiredSkills", "testStrategy", "projectId", "title", "objective", "contextFiles", "nonGoals"],
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "strings": {"type": "array", "items": {"$ref": "#/$defs/text"}, "uniqueItems": true},
+    "command": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}},
+    "taskId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{0,63}$"}
+  },
+  "properties": {
+    "projectId": {"$ref": "#/$defs/taskId"},
+    "title": {"$ref": "#/$defs/text"},
+    "objective": {"$ref": "#/$defs/text"},
+    "contextFiles": {"$ref": "#/$defs/strings"},
+    "nonGoals": {"$ref": "#/$defs/strings"},
+    "schemaVersion": {"type": "integer", "const": 1},
+    "taskId": {"$ref": "#/$defs/taskId"},
+    "baseRevision": {"type": "string", "pattern": "^[a-f0-9]{40,64}$"},
+    "approvalFiles": {"type": "array", "minItems": 2, "maxItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "allowedPaths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "verification": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/command"}},
+    "workerCommand": {"$ref": "#/$defs/command"},
+    "timeoutSeconds": {"type": "integer", "minimum": 1, "maximum": 3600},
+    "dependsOn": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/taskId"}},
+    "requiredSkills": {"type": "object", "propertyNames": {"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"}, "additionalProperties": {"$ref": "#/$defs/text"}},
+    "acceptanceCriteria": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "additionalProperties": false, "required": ["id", "description", "checkIndexes"],
+        "properties": {"id": {"$ref": "#/$defs/text"}, "description": {"$ref": "#/$defs/text"}, "checkIndexes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}}}}
+    },
+    "testStrategy": {
+      "type": "object", "additionalProperties": false, "required": ["mode", "testFiles", "redCheckIndexes", "failureMarkers"],
+      "properties": {"mode": {"enum": ["verification", "tdd"]}, "testFiles": {"$ref": "#/$defs/strings"}, "failureMarkers": {"$ref": "#/$defs/strings"}, "redCheckIndexes": {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 0}}}
+    }
+  }
+}
