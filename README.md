@@ -75,3 +75,27 @@ python bootstrap.py --mode lite
 5. Installs a durable `rea-agents@6.8.0` runtime (avoiding ephemeral `npx` cache corruption) and downloads/verifies **OpenJDK 21, Ghidra 12.1.4, JADX 0.7.1, and Apktool 3.0.3** (in `--mode full`).
 6. Registers the `rea` MCP server in both OpenCode (`opencode.json`) and Hermes (`config.yaml`) while preserving all existing user settings and API keys.
 7. Runs all **48 runner regression tests** and `rea doctor` to prove readiness.
+# Update safety and recovery boundaries
+
+The installer overlays packaged files without deleting unrelated destination files.
+Before replacing a differing file it saves a sibling backup named
+`<filename>.agentic-kit-backup-<UTC timestamp>`. Existing legacy `command/`
+directories are preserved; inspect duplicate commands manually. Obsolete files
+are not automatically removed. Backups of client configuration may contain secrets:
+keep them private and never commit or upload them.
+
+Hermes routing is maintained inside `agentic-kit:routing` markers. Existing legacy
+routing sections are migrated, missing `SOUL.md` files are created, and instructions
+outside the managed section are preserved. Ambiguous markers stop the update.
+Restart/reload Hermes before testing updated routing in a new session.
+
+Workers must produce their own reports. Never synthesize reports or manually edit
+canonical runner state to turn a failed attempt into success. Use `recover` only
+for supported terminal states and `reconcile-report` only for the exact supported
+file-list mismatch. An abandoned `running` attempt remains a blocker until a
+validated recovery path exists; do not manually promote it.
+
+Offline regression checks: `python -m unittest test_bootstrap -v`, followed by
+`python -m unittest discover -v` from `workflow-runner/`. These do not prove live
+Hermes routing, fresh-machine installation, provider execution, or enforcement
+against tools invoked outside the runner. Routing remains instruction-based.
