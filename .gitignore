@@ -10,3 +10,4 @@ __pycache__/
 node_modules/
 *.zip
 *.jar
+debounce.py

@@ -50,6 +50,32 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(argv.count("--file"), 2)
         self.assertIn(str(skill.resolve()), argv)
 
+    def test_fallback_sequence_on_primary_failure(self):
+        from unittest.mock import patch, MagicMock
+        from opencode_worker import main
+        import sys
+
+        test_args = [
+            "opencode_worker.py",
+            "--executable", "opencode.exe",
+            "--contract", str(self.contract),
+            "--agent", "build",
+        ]
+        # Simulate primary failure (1), then fallback-1 success (0)
+        mock_proc_fail = MagicMock(returncode=1)
+        mock_proc_ok = MagicMock(returncode=0)
+
+        with patch.dict("os.environ", self.env, clear=True), \
+             patch.object(sys, "argv", test_args), \
+             patch("subprocess.run", side_effect=[mock_proc_fail, mock_proc_ok]) as mock_run:
+            ret = main()
+            self.assertEqual(ret, 0)
+            self.assertEqual(mock_run.call_count, 2)
+            first_call_argv = mock_run.call_args_list[0][0][0]
+            second_call_argv = mock_run.call_args_list[1][0][0]
+            self.assertEqual(first_call_argv[first_call_argv.index("--agent") + 1], "build")
+            self.assertEqual(second_call_argv[second_call_argv.index("--agent") + 1], "build-fallback")
+
 
 if __name__ == "__main__":
     unittest.main()

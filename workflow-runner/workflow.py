@@ -82,7 +82,7 @@ def manifest(root: Path) -> dict[str, str]:
             for name in folders
             if not (
                 (relative == Path(".") and name in {".git", "artifacts", ".workflow"})
-                or name in {".gradle", "build"}
+                or name in {".gradle", "build", "__pycache__", ".pytest_cache", ".ruff_cache"}
             )
         ]
         for name in files:
@@ -516,6 +516,8 @@ def dispatch(root: Path, task_path: str) -> dict:
                 [str(resolve(root, name)) for name in state["skillHashes"]]
             ),
         )
+        if os.name == "nt" and environment.get("PWD", "").startswith("/"):
+            del environment["PWD"]
         save(
             folder / "invocation.json",
             {"command": task["workerCommand"], "contractHash": state["contractHash"]},

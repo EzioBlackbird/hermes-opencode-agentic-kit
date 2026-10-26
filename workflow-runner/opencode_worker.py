@@ -61,6 +61,7 @@ def build_command(
     argv = [
         executable,
         "run",
+        "--standalone",
         "--format",
         "json",
         "--agent",
@@ -97,15 +98,53 @@ def main() -> int:
     parser.add_argument("--auto", action="store_true")
     args = parser.parse_args()
     try:
+        run_env = dict(os.environ)
+        if os.name == "nt" and run_env.get("PWD", "").startswith("/"):
+            del run_env["PWD"]
         argv = build_command(
             args.executable,
             args.contract,
             args.agent,
             args.model,
             args.auto,
-            dict(os.environ),
+            run_env,
         )
-        return subprocess.run(argv, check=False).returncode
+        ret = subprocess.run(argv, env=run_env, check=False).returncode
+        if ret == 0:
+            return 0
+
+        # Resilient multi-tier fallback sequence if community model fails
+        fallback_agents = {
+            "build": ["build-fallback", "build-safe"],
+            "plan": ["plan-fallback", "plan-safe"],
+            "explore": ["explore-fallback", "explore-safe"],
+            "general": ["general-fallback", "general-safe"],
+            "summary": ["summary-fallback", "summary-safe"],
+        }
+        fallbacks = fallback_agents.get(args.agent, [])
+        if not args.model and fallbacks:
+            for fb_agent in fallbacks:
+                print(
+                    f"Primary agent '{args.agent}' failed (exit code {ret}). "
+                    f"Retrying with fallback agent '{fb_agent}'...",
+                    file=sys.stderr,
+                )
+                fb_argv = build_command(
+                    args.executable,
+                    args.contract,
+                    fb_agent,
+                    None,
+                    args.auto,
+                    run_env,
+                )
+                ret = subprocess.run(fb_argv, env=run_env, check=False).returncode
+                if ret == 0:
+                    print(
+                        f"Fallback agent '{fb_agent}' succeeded.",
+                        file=sys.stderr,
+                    )
+                    return 0
+        return ret
     except (OSError, ValueError) as exc:
         print(f"OpenCode adapter failed: {exc}", file=sys.stderr)
         return 1
