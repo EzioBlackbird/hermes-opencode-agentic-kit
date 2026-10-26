@@ -86,6 +86,19 @@ class BootstrapTests(unittest.TestCase):
         self.assertIn("Never synthesize a missing worker report", skill)
         self.assertIn("workflow.py recover", skill)
 
+    def test_skill_defines_fullstack_ownership_and_visual_acceptance(self):
+        skill = (
+            Path(__file__).parent / "skills/gated-project-orchestration/SKILL.md"
+        ).read_text(encoding="utf-8")
+        for requirement in (
+            "OpenCode owns engineering proposals and implementation for both frontend and backend",
+            "do not fabricate design approval",
+            "Do not assume a skill loaded in Hermes is inherited by OpenCode",
+            "build success alone is not visual acceptance",
+            "visual verification as incomplete, not passed",
+        ):
+            self.assertIn(requirement, skill)
+
 
 if __name__ == "__main__":
     unittest.main()

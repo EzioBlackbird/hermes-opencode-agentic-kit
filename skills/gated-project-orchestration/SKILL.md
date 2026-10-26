@@ -11,6 +11,16 @@ Load this skill whenever the deliverable creates or modifies website/application
 
 For multi-model implementation benchmarks, obtain approval for a shared brief and evaluation criteria. Use separate task contracts and isolated outputs/workspaces per candidate; record any explicit model override in its contract. Do not replace runner dispatch with direct model calls or relax approval gates because the task is called a demo or benchmark.
 
+## Ownership: Hermes orchestrates, OpenCode designs and implements
+
+- Hermes owns intake, scope clarification, reference discovery coordination, user approvals, task contracts, runner dispatch, evidence review, and acceptance coordination. Hermes may inspect files and run short diagnostics, but must not implement frontend or backend project code itself or through direct model API generation.
+- OpenCode owns engineering proposals and implementation for both frontend and backend: visual concepts, interaction design, component structure, architecture, APIs, data models, integrations, tests, and fixes. Hermes must preserve the user's intent and constraints rather than substitute a generic layout or dictate unapproved product decisions.
+- Before design approval, OpenCode contributions are proposals only: no implementation files, dependency installation, migrations, or application execution. The current implementation runner requires both approvals; do not fabricate design approval to request a proposal. If no validated proposal-only delegation path is available, report that limitation and agree on a supported path with the user rather than bypassing the runner or claiming OpenCode reviewed the design.
+- Before implementation dispatch, include the approved visual/technical brief and immutable reference documents in `contextFiles`. Record layout intent, typography, palette, assets, interactions, responsive behavior, and backend interfaces as applicable. Do not reduce a detailed brief to generic adjectives such as "modern" or "premium".
+- For frontend tasks, identify an appropriate installed frontend/design skill, inspect its instructions and any required references, and bind the needed project-local instruction files in `requiredSkills`. Do not assume a skill loaded in Hermes is inherited by OpenCode. If the skill or required resources are unavailable, report the gap before dispatch. Use task-appropriate backend instructions for backend tasks; do not stack conflicting design skills.
+- Frontend acceptance requires actual browser inspection at agreed desktop and mobile viewports, screenshots, and explicit review of hierarchy, typography, imagery, overflow, interaction states, and accessibility. Include executable checks and evidence expectations in the contract; build success alone is not visual acceptance. If browser inspection is unavailable, report visual verification as incomplete, not passed. Backend acceptance requires relevant behavior/integration checks, not just compilation.
+- OpenCode performs revisions through bounded runner tasks. Hermes inspects the resulting evidence and unresolved concerns; worker self-reports are not independent proof. A material change to approved scope or design requires renewed user approval before implementation.
+
 ## Local installation
 
 Runner directory: `{{RUNNER_DIR}}`.
